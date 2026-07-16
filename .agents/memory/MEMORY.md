@@ -1,0 +1,1 @@
+- [OpenAPI/Zod codegen quirks](openapi-zod-codegen-quirks.md) — this catalog's zod version breaks on `format: email` in specs; and Drizzle string-mode dates need manual formatting from coerced request bodies.

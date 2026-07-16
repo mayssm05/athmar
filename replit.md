@@ -1,10 +1,11 @@
-# [Project name]
+# Kanz Bakery
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A web app for a family-run neighborhood bakery: browsable menu with categories and ratings, customer reviews, and a catering/bulk-order request form.
 
 ## Run & Operate
 
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/kanz-bakery run dev` — run the bakery web app
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -19,18 +20,29 @@ _Replace the heading above with the project's name, and this line with one sente
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- Frontend: React + Vite, wouter routing, TanStack Query, shadcn/radix UI, react-hook-form + zod
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — source of truth for the API contract (menu, reviews, catering endpoints/schemas)
+- `lib/db/src/schema/` — Drizzle tables: `menu-items.ts` (menu items + reviews), `catering-requests.ts`
+- `artifacts/api-server/src/routes/` — Express routers: `menu.ts` (menu items, categories, reviews), `catering.ts`
+- `artifacts/kanz-bakery/` — the customer-facing web app (pages under `src/pages`)
+- `artifacts/kanz-bakery/public/menu-images/` — generated product photography referenced by seeded `menu_items.image_url`
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- No auth/admin panel — scope is public browsing, reviewing, and submitting catering requests only. Catering requests are write-only (`POST` with no listing endpoint) to avoid exposing customer data without auth.
+- Menu categories are a plain string column on `menu_items`, not a separate table; `/menu-categories` computes counts via `GROUP BY`.
+- Ratings are a separate `menu_item_reviews` table; `averageRating`/`reviewCount` are computed via SQL aggregation and embedded directly in `MenuItem` API responses rather than aggregated client-side.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Home: bakery story/identity, featured items, catering CTA
+- Menu (`/menu`): filterable by category, search, shows rating + review count per item
+- Menu item detail (`/menu/:id`): full description, reviews list, star-rating review submission form
+- Catering (`/catering`): bulk order/catering request form with confirmation
+- About (`/about`): bakery story and values
 
 ## User preferences
 
@@ -38,7 +50,8 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- This workspace's zod catalog version does not support `format: email` in the OpenAPI spec (emits `zod.email()`, unavailable) — use a plain string with `minLength` instead of an email format.
+- Drizzle date columns with `{ mode: "string" }` expect a `YYYY-MM-DD` string on insert; convert any `Date` from a coerced request body with `.toISOString().slice(0, 10)` before inserting.
 
 ## Pointers
 
