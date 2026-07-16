@@ -41,7 +41,8 @@ class AthmarApp extends StatelessWidget {
       routes: {
         '/': (_) => const LoginScreen(),
         '/services': (_) => const ServicesScreen(),
-        '/athmar': (_) => const AthmarPlaceholderScreen(),
+        '/athmar': (_) => const AthmarWelcomeScreen(),
+        '/athmar/journey': (_) => const AthmarJourneyPlaceholderScreen(),
       },
     );
   }
@@ -605,10 +606,173 @@ class _BottomNav extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Placeholder screen after tapping أثمر
+// أثمر welcome screen (after tapping the أثمر card)
 // ---------------------------------------------------------------------------
-class AthmarPlaceholderScreen extends StatelessWidget {
-  const AthmarPlaceholderScreen({super.key});
+const kBlushCard = Color(0xFFF2D7C7);
+const kSalmon = Color(0xFFE7A891);
+
+class AthmarWelcomeScreen extends StatelessWidget {
+  const AthmarWelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kCream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const StatusBar(time: '2:12'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: kPill,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text('هـ',
+                        style: TextStyle(
+                            color: kNavy,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('هديل',
+                      style: TextStyle(
+                          color: kNavy,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 18),
+                    const Text('مرحبًا بك في',
+                        style: TextStyle(
+                            color: kNavy,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    const Text('أثمر',
+                        style: TextStyle(
+                            color: kSalmon,
+                            fontSize: 40,
+                            fontWeight: FontWeight.w700,
+                            height: 1.2)),
+                    const SizedBox(height: 22),
+                    const Text(
+                      'من بذرة ادخار صغيرة، تبدأ رحلتك\nنحو تحقيق أهدافك المالية.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: kNavy,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w500,
+                          height: 1.6),
+                    ),
+                    const SizedBox(height: 34),
+                    const RawAssetImage('assets/images/athmar_sprout.png',
+                        width: 96, height: 84),
+                    const SizedBox(height: 44),
+                    _featuresCard(),
+                    const SizedBox(height: 22),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 54,
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/athmar/journey'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPill,
+                          foregroundColor: kNavy,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: const Text('ابدأ رحلتك',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'IBM Plex Sans Arabic')),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                  ],
+                ),
+              ),
+            ),
+            const _BottomNav(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _featuresCard() {
+    const rows = [
+      ('حدّد هدفك', 'اختر ما تريد تحقيقه', Icons.track_changes),
+      ('ادخر بسهولة', 'بطريقة تناسبك', Icons.account_balance_wallet_outlined),
+      ('شاهد نبتتك تنمو', 'مع كل ادخار', Icons.energy_savings_leaf_outlined),
+    ];
+    return Container(
+      decoration: BoxDecoration(
+        color: kBlushCard,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: Column(
+        children: [
+          for (var i = 0; i < rows.length; i++) ...[
+            if (i > 0)
+              Divider(
+                  height: 1,
+                  color: kNavy.withValues(alpha: 0.12)),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: Row(
+                children: [
+                  Icon(rows[i].$3, color: kNavy, size: 26),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(rows[i].$1,
+                            style: const TextStyle(
+                                color: kNavy,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 2),
+                        Text(rows[i].$2,
+                            style: TextStyle(
+                                color: kNavy.withValues(alpha: 0.65),
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Placeholder for the next page after "ابدأ رحلتك"
+// ---------------------------------------------------------------------------
+class AthmarJourneyPlaceholderScreen extends StatelessWidget {
+  const AthmarJourneyPlaceholderScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
