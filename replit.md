@@ -22,6 +22,14 @@ A web app for a family-run neighborhood bakery: browsable menu with categories a
 - Build: esbuild (CJS bundle)
 - Frontend: React + Vite, wouter routing, TanStack Query, shadcn/radix UI, react-hook-form + zod
 
+## Athmar (أثمر) — Flutter app
+
+- `artifacts/athmar/app/` — Flutter (Dart) app replicating Alinma bank login & services screens (RTL Arabic), foundation for the أثمر savings service. Design copied pixel-faithfully from the user's Figma screenshots — do NOT change visuals without the user's explicit permission.
+- Rebuild after Dart changes: `cd artifacts/athmar/app && flutter build web --base-href /athmar/ --release --pwa-strategy=none && cd .. && node postbuild.mjs`
+- Served as a static Flutter web build by `artifacts/athmar/server.mjs` (workflow `artifacts/athmar: web`), preview path `/athmar/`.
+- Only interactive elements: login username/password fields (expected "hadeel" / "123456789"), login button → services screen, أثمر card → blank placeholder screen. Everything else is static by design.
+- Font: bundled IBM Plex Sans Arabic (`app/assets/fonts/`).
+
 ## Where things live
 
 - `lib/api-spec/openapi.yaml` — source of truth for the API contract (menu, reviews, catering endpoints/schemas)

@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/athmar/"
+title = "Athmar (أثمر)"
+version = "1.0.0"
+id = "artifacts/athmar"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/athmar/" ]
+localPort = 19115
+
+[services.development]
+run = "pnpm --filter @workspace/athmar run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/athmar", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/athmar/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19115"
+BASE_PATH = "/athmar/"

@@ -1,1 +1,2 @@
 - [OpenAPI/Zod codegen quirks](openapi-zod-codegen-quirks.md) — this catalog's zod version breaks on `format: email` in specs; and Drizzle string-mode dates need manual formatting from coerced request bodies.
+- [Flutter web on Replit](flutter-web-on-replit.md) — no Flutter artifact type: nix flutter + static node server on PORT/BASE_PATH; must strip Flutter's service worker post-build or preview wedges blank.
