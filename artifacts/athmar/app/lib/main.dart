@@ -42,7 +42,9 @@ class AthmarApp extends StatelessWidget {
         '/': (_) => const LoginScreen(),
         '/services': (_) => const ServicesScreen(),
         '/athmar': (_) => const AthmarWelcomeScreen(),
-        '/athmar/journey': (_) => const AthmarJourneyPlaceholderScreen(),
+        '/athmar/journey': (_) => const AthmarSavingsSetupScreen(),
+        '/athmar/advisor': (_) => const AthmarPlaceholderPage(),
+        '/athmar/next': (_) => const AthmarPlaceholderPage(),
       },
     );
   }
@@ -769,10 +771,282 @@ class AthmarWelcomeScreen extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Placeholder for the next page after "ابدأ رحلتك"
+// كم ترغب في الادخار؟ — savings amount/duration setup
 // ---------------------------------------------------------------------------
-class AthmarJourneyPlaceholderScreen extends StatelessWidget {
-  const AthmarJourneyPlaceholderScreen({super.key});
+const kGrayCard = Color(0xFFD6D6D6);
+const kBlushHelp = Color(0xFFEDD2C2);
+
+class AthmarSavingsSetupScreen extends StatefulWidget {
+  const AthmarSavingsSetupScreen({super.key});
+
+  @override
+  State<AthmarSavingsSetupScreen> createState() =>
+      _AthmarSavingsSetupScreenState();
+}
+
+class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
+  double _amount = 10000;
+  double _months = 20;
+
+  String _fmt(num n) {
+    final s = n.round().toString();
+    final b = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) b.write(',');
+      b.write(s[i]);
+    }
+    return b.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final monthly = _amount / _months;
+    return Scaffold(
+      backgroundColor: kCream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const StatusBar(time: '2:12'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: kPill,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text('هـ',
+                        style: TextStyle(
+                            color: kNavy,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('هديل',
+                      style: TextStyle(
+                          color: kNavy,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const Text('كم ترغب في\nالادخار؟',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: kNavy,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25)),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'اختر المبلغ الذي تريد البدء به\nيمكنك التعديل لاحقًا في أي وقت.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: kSalmon,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          height: 1.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: kGrayCard,
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                      child: Column(
+                        children: [
+                          const Text('المبلغ',
+                              style: TextStyle(
+                                  color: kNavy,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 2),
+                          _bigValue(_fmt(_amount), 'ريال'),
+                          _slider(
+                            value: _amount,
+                            min: 100,
+                            max: 500000,
+                            onChanged: (v) => setState(() => _amount = v),
+                          ),
+                          _rangeLabels('100', '500,000'),
+                          const SizedBox(height: 8),
+                          const Text('المدة',
+                              style: TextStyle(
+                                  color: kNavy,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 2),
+                          _bigValue(_fmt(_months), 'شهر'),
+                          _slider(
+                            value: _months,
+                            min: 1,
+                            max: 60,
+                            onChanged: (v) =>
+                                setState(() => _months = v.roundToDouble()),
+                          ),
+                          _rangeLabels('1', '60 شهر'),
+                          const SizedBox(height: 8),
+                          const Text('الادخار الشهري المتوقع',
+                              style: TextStyle(
+                                  color: kNavy,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 2),
+                          _bigValue(_fmt(monthly), 'ريال'),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () =>
+                          Navigator.of(context).pushNamed('/athmar/advisor'),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: kBlushHelp,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('تبغى مساعدة ؟',
+                                      style: TextStyle(
+                                          color: kNavy,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 2),
+                                  Text('استشر مزارعنا الذكي',
+                                      style: TextStyle(
+                                          color: kNavy.withValues(alpha: 0.7),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500)),
+                                  const SizedBox(height: 4),
+                                  const Icon(Icons.arrow_back,
+                                      color: kNavy, size: 18),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const RawAssetImage(
+                                'assets/images/athmar_farmer.png',
+                                width: 50, height: 82),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            Navigator.of(context).pushNamed('/athmar/next'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kPill,
+                          foregroundColor: kNavy,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: const Text('التالي',
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'IBM Plex Sans Arabic')),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+            const _BottomNav(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _bigValue(String value, String unit) {
+    return Column(
+      children: [
+        Text(value,
+            style: const TextStyle(
+                color: kNavy,
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                height: 1.2)),
+        Text(unit,
+            style: TextStyle(
+                color: kNavy.withValues(alpha: 0.6),
+                fontSize: 12,
+                fontWeight: FontWeight.w500)),
+      ],
+    );
+  }
+
+  Widget _slider({
+    required double value,
+    required double min,
+    required double max,
+    required ValueChanged<double> onChanged,
+  }) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: SliderTheme(
+        data: SliderThemeData(
+          trackHeight: 6,
+          activeTrackColor: kSalmon,
+          inactiveTrackColor: kCream,
+          thumbColor: kSalmon,
+          overlayColor: kSalmon.withValues(alpha: 0.15),
+          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
+        ),
+        child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+      ),
+    );
+  }
+
+  Widget _rangeLabels(String lo, String hi) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(lo,
+                style: TextStyle(
+                    color: kNavy.withValues(alpha: 0.5), fontSize: 11)),
+            Text(hi,
+                style: TextStyle(
+                    color: kNavy.withValues(alpha: 0.5), fontSize: 11)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Generic placeholder for pages not designed yet
+// ---------------------------------------------------------------------------
+class AthmarPlaceholderPage extends StatelessWidget {
+  const AthmarPlaceholderPage({super.key});
 
   @override
   Widget build(BuildContext context) {
