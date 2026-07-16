@@ -538,7 +538,7 @@ class _ServiceCard extends StatelessWidget {
         children: [
           if (service.isAthmar)
             const RawAssetImage('assets/images/athmar_sprout.png',
-                width: 30, height: 26)
+                width: 21, height: 30)
           else
             Icon(service.icon, color: service.color ?? kNavy, size: 26),
           const SizedBox(height: 10),
@@ -679,7 +679,7 @@ class AthmarWelcomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 34),
                     const RawAssetImage('assets/images/athmar_sprout.png',
-                        width: 96, height: 84),
+                        width: 68, height: 96),
                     const SizedBox(height: 44),
                     _featuresCard(),
                     const SizedBox(height: 22),

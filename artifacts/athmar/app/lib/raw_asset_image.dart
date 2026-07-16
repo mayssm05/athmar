@@ -34,6 +34,15 @@ class _RawAssetImageState extends State<RawAssetImage> {
     final decoded = img.decodePng(bytes.buffer.asUint8List());
     if (decoded == null) return;
     final rgba = decoded.convert(numChannels: 4).getBytes(order: img.ChannelOrder.rgba);
+    // decodeImageFromPixels expects premultiplied alpha; without this,
+    // transparent pixels with non-zero RGB render as a white box.
+    for (var i = 0; i < rgba.length; i += 4) {
+      final a = rgba[i + 3];
+      if (a == 255) continue;
+      rgba[i] = rgba[i] * a ~/ 255;
+      rgba[i + 1] = rgba[i + 1] * a ~/ 255;
+      rgba[i + 2] = rgba[i + 2] * a ~/ 255;
+    }
     ui.decodeImageFromPixels(rgba, decoded.width, decoded.height,
         ui.PixelFormat.rgba8888, (image) {
       if (mounted) setState(() => _image = image);

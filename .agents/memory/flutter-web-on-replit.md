@@ -13,4 +13,6 @@ description: How to serve a Flutter (Dart) app in this monorepo's artifact previ
 
 **Images blank in preview/screenshots:** CanvasKit's CPU-only fallback (no WebGL in the proxied preview/headless browsers) silently fails to draw browser-decoded images — `Image.asset` reports frame 0 loaded but nothing paints. Fix: decode PNGs in pure Dart (`image` package) and feed raw RGBA to `ui.decodeImageFromPixels` + `RawImage` (see `artifacts/athmar/app/lib/raw_asset_image.dart`).
 
+**White box behind transparent PNGs:** `ui.decodeImageFromPixels` expects premultiplied alpha; unpremultiplied RGBA renders transparent pixels' RGB additively (white box behind the image). Premultiply RGB by alpha in Dart before the call (see `raw_asset_image.dart`).
+
 **Screenshotting inner routes:** use named routes + hash URLs (`/#/route`) so the Screenshot tool can reach non-home screens.
