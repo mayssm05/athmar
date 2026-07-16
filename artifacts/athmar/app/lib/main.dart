@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'raw_asset_image.dart';
 
@@ -43,7 +46,7 @@ class AthmarApp extends StatelessWidget {
         '/services': (_) => const ServicesScreen(),
         '/athmar': (_) => const AthmarWelcomeScreen(),
         '/athmar/journey': (_) => const AthmarSavingsSetupScreen(),
-        '/athmar/advisor': (_) => const AthmarPlaceholderPage(),
+        '/athmar/advisor': (_) => const AdvisorChatScreen(),
         '/athmar/next': (_) => const AthmarPlaceholderPage(),
       },
     );
@@ -1037,6 +1040,333 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                     color: kNavy.withValues(alpha: 0.5), fontSize: 11)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// محادثة المزارع الذكي — AI financial advisor chat
+// ---------------------------------------------------------------------------
+const kUserBubble = Color(0xFFDEB197);
+
+class _ChatMessage {
+  _ChatMessage(this.role, this.content);
+  final String role; // 'user' | 'assistant'
+  final String content;
+}
+
+class AdvisorChatScreen extends StatefulWidget {
+  const AdvisorChatScreen({super.key});
+
+  @override
+  State<AdvisorChatScreen> createState() => _AdvisorChatScreenState();
+}
+
+class _AdvisorChatScreenState extends State<AdvisorChatScreen> {
+  final List<_ChatMessage> _messages = [
+    _ChatMessage('assistant',
+        'اهلًا أنا المزارع الذكي ! صديقك في رحلة الادخار في أثمر\nسواء كنت محتار بمبلغ الادخار او عندك اي استفسار آخر'),
+  ];
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scroll = ScrollController();
+  bool _sending = false;
+  bool _showSuggestions = true;
+
+  static const _suggestions = [
+    'كم أدخر شهريًا؟',
+    'اقترح لي هدف ادخار',
+    'هل مبلغي مناسب؟',
+  ];
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send(String text) async {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty || _sending) return;
+    setState(() {
+      _messages.add(_ChatMessage('user', trimmed));
+      _sending = true;
+      _showSuggestions = false;
+      _controller.clear();
+    });
+    _scrollToEnd();
+    try {
+      final resp = await http
+          .post(
+            Uri.base.resolve('/api/advisor/chat'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'messages': _messages
+                  .map((m) => {'role': m.role, 'content': m.content})
+                  .toList(),
+            }),
+          )
+          .timeout(const Duration(seconds: 60));
+      String reply;
+      if (resp.statusCode == 200) {
+        reply = (jsonDecode(utf8.decode(resp.bodyBytes))
+                as Map<String, dynamic>)['reply'] as String? ??
+            '';
+      } else {
+        reply = 'عذرًا، صار خلل بسيط. جرّب مرة ثانية.';
+      }
+      if (reply.isEmpty) reply = 'عذرًا، ما وصلني رد. جرّب مرة ثانية.';
+      if (mounted) {
+        setState(() => _messages.add(_ChatMessage('assistant', reply)));
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _messages
+            .add(_ChatMessage('assistant', 'تعذّر الاتصال، جرّب مرة ثانية.')));
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+      _scrollToEnd();
+    }
+  }
+
+  void _scrollToEnd() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scroll.hasClients) {
+        _scroll.animateTo(_scroll.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kCream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const StatusBar(time: '2:12'),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: kPill,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text('هـ',
+                        style: TextStyle(
+                            color: kNavy,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: 10),
+                  const Text('هديل',
+                      style: TextStyle(
+                          color: kNavy,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700)),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                controller: _scroll,
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                itemCount: _messages.length + (_sending ? 1 : 0),
+                itemBuilder: (context, i) {
+                  if (i == _messages.length) {
+                    return _assistantRow(const _TypingDots());
+                  }
+                  final m = _messages[i];
+                  if (m.role == 'assistant') {
+                    return _assistantRow(_bubble(m.content, kBlushHelp));
+                  }
+                  return Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _bubble(m.content, kUserBubble),
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (_showSuggestions)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final s in _suggestions)
+                      GestureDetector(
+                        onTap: () => _send(s),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: kPill,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(s,
+                              style: const TextStyle(
+                                  color: kNavy,
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: kPill, width: 1.5),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        onSubmitted: _send,
+                        textInputAction: TextInputAction.send,
+                        style: const TextStyle(
+                            color: kNavy,
+                            fontSize: 13.5,
+                            fontFamily: 'IBM Plex Sans Arabic'),
+                        decoration: const InputDecoration(
+                          hintText: 'اكتب سؤالك للمزارع الذكي...',
+                          hintStyle: TextStyle(color: kHint, fontSize: 12.5),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _send(_controller.text),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: _sending ? kHint : kNavy,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.arrow_upward,
+                            color: Colors.white, size: 20),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const _BottomNav(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _assistantRow(Widget bubble) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const RawAssetImage('assets/images/athmar_farmer_chat.png',
+                width: 30, height: 45),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Directionality(
+                  textDirection: TextDirection.rtl, child: bubble),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _bubble(String text, Color color) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 280),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Text(text,
+          style: const TextStyle(
+              color: kNavy,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              height: 1.6)),
+    );
+  }
+}
+
+class _TypingDots extends StatefulWidget {
+  const _TypingDots();
+
+  @override
+  State<_TypingDots> createState() => _TypingDotsState();
+}
+
+class _TypingDotsState extends State<_TypingDots>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c =
+      AnimationController(vsync: this, duration: const Duration(seconds: 1))
+        ..repeat();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: kBlushHelp,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (context, _) {
+          final active = (_c.value * 3).floor() % 3;
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < 3; i++)
+                Container(
+                  width: 7,
+                  height: 7,
+                  margin: const EdgeInsets.symmetric(horizontal: 2.5),
+                  decoration: BoxDecoration(
+                    color: i == active
+                        ? kNavy
+                        : kNavy.withValues(alpha: 0.3),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

@@ -15,4 +15,6 @@ description: How to serve a Flutter (Dart) app in this monorepo's artifact previ
 
 **White box behind transparent PNGs:** `ui.decodeImageFromPixels` expects premultiplied alpha; unpremultiplied RGBA renders transparent pixels' RGB additively (white box behind the image). Premultiply RGB by alpha in Dart before the call (see `raw_asset_image.dart`).
 
+**Calling the api-server from Flutter web:** routes are mounted under `/api` and the platform proxy maps `https://<dev-domain>/api/...` to the api-server — use `Uri.base.resolve('/api/...')` in Dart. Note: `curl localhost:80/api/...` does NOT route there (falls back to the root artifact); verify with the real dev domain.
+
 **Screenshotting inner routes:** use named routes + hash URLs (`/#/route`) so the Screenshot tool can reach non-home screens.
