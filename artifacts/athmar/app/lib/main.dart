@@ -2054,12 +2054,12 @@ class _TrackerScreenState extends State<TrackerScreen>
 
   static const _stages = [
     // asset, name, width, height
-    ('stage1', 'بذرة', 78.0, 52.0),
-    ('stage2', 'برعم', 52.0, 82.0),
-    ('stage3', 'نبتة صغيرة', 86.0, 84.0),
-    ('stage4', 'بداية الإزهار', 80.0, 82.0),
-    ('stage5', 'شجيرة مزهرة', 108.0, 82.0),
-    ('stage6', 'إزهار كامل', 122.0, 94.0),
+    ('stage1', 'بذرة', 101.0, 52.0),
+    ('stage2', 'برعم', 44.0, 130.0),
+    ('stage3', 'نبتة صغيرة', 99.0, 165.0),
+    ('stage4', 'بداية الإزهار', 129.0, 190.0),
+    ('stage5', 'شجيرة مزهرة', 245.0, 200.0),
+    ('stage6', 'إزهار كامل', 257.0, 210.0),
   ];
 
   @override
@@ -2230,8 +2230,8 @@ class _TrackerScreenState extends State<TrackerScreen>
                               child: RawAssetImage(
                                 'assets/images/${stage.$1}.png',
                                 key: ValueKey(stage.$1),
-                                width: stage.$3 * 1.56,
-                                height: stage.$4 * 1.56,
+                                width: stage.$3,
+                                height: stage.$4,
                               ),
                             ),
                           ),
