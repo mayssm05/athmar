@@ -919,7 +919,7 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
+                            horizontal: 14, vertical: 6),
                         child: Row(
                           children: [
                             Expanded(
@@ -929,24 +929,23 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                                   const Text('تبغى مساعدة ؟',
                                       style: TextStyle(
                                           color: kNavy,
-                                          fontSize: 15,
+                                          fontSize: 13,
                                           fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: 2),
                                   Text('استشر مزارعنا الذكي',
                                       style: TextStyle(
                                           color: kNavy.withValues(alpha: 0.7),
-                                          fontSize: 12,
+                                          fontSize: 10.5,
                                           fontWeight: FontWeight.w500)),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 2),
                                   const Icon(Icons.arrow_back,
-                                      color: kNavy, size: 18),
+                                      color: kNavy, size: 15),
                                 ],
                               ),
                             ),
                             const SizedBox(width: 12),
                             const RawAssetImage(
                                 'assets/images/athmar_farmer.png',
-                                width: 50, height: 82),
+                                width: 34, height: 56),
                           ],
                         ),
                       ),
@@ -1066,7 +1065,7 @@ class AdvisorChatScreen extends StatefulWidget {
 class _AdvisorChatScreenState extends State<AdvisorChatScreen> {
   final List<_ChatMessage> _messages = [
     _ChatMessage('assistant',
-        'اهلًا أنا المزارع الذكي ! صديقك في رحلة الادخار في أثمر\nسواء كنت محتار بمبلغ الادخار او عندك اي استفسار آخر'),
+        'اهلًا أنا المزارع الذكي ! صديقك في رحلة الادخار في أثمر\nسواء كنت محتار بمبلغ الادخار او عندك اي استفسار آخر (اكتبه لي)'),
   ];
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scroll = ScrollController();
@@ -1189,13 +1188,7 @@ class _AdvisorChatScreenState extends State<AdvisorChatScreen> {
                   if (m.role == 'assistant') {
                     return _assistantRow(_bubble(m.content, kBlushHelp));
                   }
-                  return Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _bubble(m.content, kUserBubble),
-                    ),
-                  );
+                  return _userRow(_bubble(m.content, kUserBubble));
                 },
               ),
             ),
@@ -1294,6 +1287,36 @@ class _AdvisorChatScreenState extends State<AdvisorChatScreen> {
               child: Directionality(
                   textDirection: TextDirection.rtl, child: bubble),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _userRow(Widget bubble) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: const BoxDecoration(
+                color: kPill,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const Text('هـ',
+                  style: TextStyle(
+                      color: kNavy,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700)),
+            ),
+            const SizedBox(width: 6),
+            Flexible(child: bubble),
           ],
         ),
       ),
