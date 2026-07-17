@@ -88,7 +88,7 @@ cd .. && node postbuild.mjs
 
 ## 🌐 Live Demo
 
-**[athmora.com](https://athmora.com)**
+**[kanz-bakery-menu--mayssm5000.replit.app/athmar](https://kanz-bakery-menu--mayssm5000.replit.app/athmar/)**
 
 ---
 
