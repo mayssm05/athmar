@@ -46,6 +46,9 @@ class AthmarApp extends StatelessWidget {
         '/services': (_) => const ServicesScreen(),
         '/athmar': (_) => const AthmarWelcomeScreen(),
         '/athmar/journey': (_) => const AthmarSavingsSetupScreen(),
+        '/athmar/goal': (_) => const GoalScreen(amount: 10000, months: 20),
+        '/athmar/plant': (_) =>
+            const PlantScreen(goal: 'زواج', amount: 10000, months: 2),
         '/athmar/advisor': (_) => const AdvisorChatScreen(),
         '/athmar/next': (_) => const AthmarPlaceholderPage(),
       },
@@ -955,8 +958,14 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () =>
-                            Navigator.of(context).pushNamed('/athmar/next'),
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => GoalScreen(
+                              amount: _amount.round(),
+                              months: _months.round(),
+                            ),
+                          ),
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kPill,
                           foregroundColor: kNavy,
@@ -1040,6 +1049,560 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// ما هدفك من الادخار؟ — goal selection
+// ---------------------------------------------------------------------------
+const kTileGray = Color(0xFFD9D9D9);
+
+class HadeelBadge extends StatelessWidget {
+  const HadeelBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: kPill,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          child: const Text('هـ',
+              style: TextStyle(
+                  color: kNavy, fontSize: 16, fontWeight: FontWeight.w700)),
+        ),
+        const SizedBox(width: 10),
+        const Text('هديل',
+            style: TextStyle(
+                color: kNavy, fontSize: 18, fontWeight: FontWeight.w700)),
+      ],
+    );
+  }
+}
+
+class GoalScreen extends StatefulWidget {
+  const GoalScreen({super.key, required this.amount, required this.months});
+
+  final int amount;
+  final int months;
+
+  @override
+  State<GoalScreen> createState() => _GoalScreenState();
+}
+
+class _GoalScreenState extends State<GoalScreen> {
+  // Order matches the mockup grid (first item of each pair sits on the right).
+  static const _goals = [
+    ('طوارئ', 'goal_cash'),
+    ('سفرة', 'goal_plane'),
+    ('زواج', 'goal_couple'),
+    ('سيارة', 'goal_car'),
+    ('بيت', 'goal_house'),
+  ];
+
+  int? _selected; // 0..4 preset, 5 = custom
+  final TextEditingController _custom = TextEditingController();
+
+  @override
+  void dispose() {
+    _custom.dispose();
+    super.dispose();
+  }
+
+  String? get _goalName {
+    if (_selected == null) return null;
+    if (_selected == 5) {
+      final t = _custom.text.trim();
+      return t.isEmpty ? null : t;
+    }
+    return _goals[_selected!].$1;
+  }
+
+  void _next() {
+    final goal = _goalName;
+    if (goal == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PlantScreen(
+          goal: goal,
+          amount: widget.amount,
+          months: widget.months,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kCream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const StatusBar(time: '2:12'),
+            const SizedBox(height: 2),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: HadeelBadge(),
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text('ما هدفك من\nالأدخار؟',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: kNavy,
+                    fontSize: 26,
+                    height: 1.25,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(height: 18),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    // Tile order per mockup; last row: custom goal right, بيت left.
+                    for (final pair in const [
+                      [0, 1],
+                      [2, 3],
+                      [5, 4],
+                    ]) ...[
+                      Row(
+                        children: [
+                          Expanded(child: _tile(pair[0])),
+                          const SizedBox(width: 16),
+                          Expanded(child: _tile(pair[1])),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 4, 24, 12),
+              child: SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _goalName == null ? null : _next,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPill,
+                    disabledBackgroundColor: kPill.withValues(alpha: 0.55),
+                    foregroundColor: kNavy,
+                    disabledForegroundColor: kNavy.withValues(alpha: 0.4),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text('التالي',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'IBM Plex Sans Arabic')),
+                ),
+              ),
+            ),
+            const _BottomNav(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _tile(int index) {
+    final selected = _selected == index;
+    final border = selected
+        ? Border.all(color: kNavy, width: 2)
+        : Border.all(color: Colors.transparent, width: 2);
+    if (index == 5) {
+      return GestureDetector(
+        onTap: () => setState(() => _selected = 5),
+        child: Container(
+          height: 128,
+          decoration: BoxDecoration(
+            color: kTileGray,
+            borderRadius: BorderRadius.circular(28),
+            border: border,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const RawAssetImage('assets/images/goal_pencil.png',
+                  width: 38, height: 26),
+              const SizedBox(height: 2),
+              const Text('هدف مخصص',
+                  style: TextStyle(
+                      color: kNavy,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800)),
+              Text('-اكتب هدفك',
+                  style: TextStyle(
+                      color: kNavy.withValues(alpha: 0.6),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500)),
+              const SizedBox(height: 3),
+              Container(
+                height: 24,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: TextField(
+                  controller: _custom,
+                  maxLength: 100,
+                  buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
+                  onTap: () => setState(() => _selected = 5),
+                  onChanged: (_) => setState(() {}),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: kNavy,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'IBM Plex Sans Arabic'),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.only(bottom: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    final (label, asset) = _goals[index];
+    return GestureDetector(
+      onTap: () => setState(() => _selected = index),
+      child: Container(
+        height: 128,
+        decoration: BoxDecoration(
+          color: kTileGray,
+          borderRadius: BorderRadius.circular(28),
+          border: border,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            RawAssetImage('assets/images/$asset.png', width: 78, height: 48),
+            const SizedBox(height: 6),
+            Text(label,
+                style: const TextStyle(
+                    color: kNavy,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// بطاقة النبتة — plant chosen by AI from the saving duration
+// ---------------------------------------------------------------------------
+class PlantScreen extends StatefulWidget {
+  const PlantScreen(
+      {super.key,
+      required this.goal,
+      required this.amount,
+      required this.months});
+
+  final String goal;
+  final int amount;
+  final int months;
+
+  @override
+  State<PlantScreen> createState() => _PlantScreenState();
+}
+
+class _PlantScreenState extends State<PlantScreen> {
+  // Only lavender exists for now; later plants map to other durations.
+  static const _plantName = 'الخزامى';
+  static const _growth = '2-1 شهر';
+
+  String? _reason;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReason();
+  }
+
+  String get _fallbackReason =>
+      'لأنك اخترت هدف "${widget.goal}" لمدة ${widget.months} شهر فنبتة الخزامى هي المناسبة لك إذ تنمو سريعًا وتعكس حماسك للقرب من تحقيق هدفك';
+
+  Future<void> _loadReason() async {
+    try {
+      final resp = await http
+          .post(
+            Uri.base.resolve('/api/advisor/plant'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'goal': widget.goal,
+              'amount': widget.amount,
+              'months': widget.months,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+      String reason = '';
+      if (resp.statusCode == 200) {
+        reason = (jsonDecode(utf8.decode(resp.bodyBytes))
+                as Map<String, dynamic>)['reason'] as String? ??
+            '';
+      }
+      if (mounted) {
+        setState(() => _reason = reason.isEmpty ? _fallbackReason : reason);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _reason = _fallbackReason);
+    }
+  }
+
+  String _fmtInt(int v) {
+    final s = v.toString();
+    final b = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      b.write(s[i]);
+      final left = s.length - i - 1;
+      if (left > 0 && left % 3 == 0) b.write(',');
+    }
+    return b.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: kCream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const StatusBar(time: '2:12'),
+            const SizedBox(height: 2),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: HadeelBadge(),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: const TextSpan(
+                        style: TextStyle(
+                            fontSize: 24,
+                            height: 1.35,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: 'IBM Plex Sans Arabic'),
+                        children: [
+                          TextSpan(
+                              text: 'نبتتك ', style: TextStyle(color: kNavy)),
+                          TextSpan(
+                              text: 'الأولى\n',
+                              style: TextStyle(color: kSalmon)),
+                          TextSpan(
+                              text: 'ستكون', style: TextStyle(color: kNavy)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('⟩',
+                            style: TextStyle(
+                                color: kSalmon.withValues(alpha: 0.8),
+                                fontSize: 18)),
+                        const SizedBox(width: 10),
+                        const Text(_plantName,
+                            style: TextStyle(
+                                color: kSalmon,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800)),
+                        const SizedBox(width: 10),
+                        Text('⟨',
+                            style: TextStyle(
+                                color: kSalmon.withValues(alpha: 0.8),
+                                fontSize: 18)),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    const Text('كلما ادخرت اكثر, نبتتك ستكبر\nوتزهر بوقتك الجميل.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: kNavy,
+                            fontSize: 12.5,
+                            height: 1.6,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 10),
+                    const RawAssetImage('assets/images/plant_lavender.png',
+                        width: 100, height: 107),
+                    const SizedBox(height: 14),
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: kBlushHelp,
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 18, vertical: 14),
+                          child: _reason == null
+                              ? const Center(
+                                  child: SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2, color: kNavy),
+                                  ),
+                                )
+                              : Text(_reason!,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      color: kNavy,
+                                      fontSize: 12.5,
+                                      height: 1.7,
+                                      fontWeight: FontWeight.w600)),
+                        ),
+                        const PositionedDirectional(
+                          top: -10,
+                          start: 6,
+                          child: RawAssetImage(
+                              'assets/images/plant_stamp.png',
+                              width: 36, height: 17),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: kTileGray,
+                        borderRadius: BorderRadius.circular(26),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                              child: _summaryCol('نوع النبتة', _plantName)),
+                          _divider(),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Text('المبلغ',
+                                    style: TextStyle(
+                                        color: kNavy,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 4),
+                                Text(_fmtInt(widget.amount),
+                                    style: const TextStyle(
+                                        color: kNavy,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800)),
+                                Text('ريال',
+                                    style: TextStyle(
+                                        color: kNavy.withValues(alpha: 0.6),
+                                        fontSize: 10)),
+                              ],
+                            ),
+                          ),
+                          _divider(),
+                          Expanded(
+                              child:
+                                  _summaryCol('وقت النمو المتوقع', _growth)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        const RawAssetImage('assets/images/athmar_sprout.png',
+                            width: 24, height: 30),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                              'كلما زاد مبلغ ادخارك, تحصل على نبتة سعودية اكبر وتستغرق وقتًا اطول لتنمو وتزهر.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: kSalmon.withValues(alpha: 0.95),
+                                  fontSize: 11.5,
+                                  height: 1.6,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kBlushHelp,
+                          foregroundColor: kNavy,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14)),
+                        ),
+                        child: const Text('ابدأ الأدخار',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'IBM Plex Sans Arabic')),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+            const _BottomNav(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _divider() => Container(
+        width: 1,
+        height: 52,
+        color: kNavy.withValues(alpha: 0.15),
+        margin: const EdgeInsets.symmetric(horizontal: 6),
+      );
+
+  Widget _summaryCol(String label, String value) {
+    return Column(
+      children: [
+        Text(label,
+            style: const TextStyle(
+                color: kNavy, fontSize: 11, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        Text(value,
+            style: const TextStyle(
+                color: kSalmon, fontSize: 16, fontWeight: FontWeight.w800)),
+      ],
     );
   }
 }
