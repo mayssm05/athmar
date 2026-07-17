@@ -1,0 +1,3 @@
+artifacts/athmar/app/build/web/** linguist-generated=true
+artifacts/athmar/app/build/web/main.dart.js linguist-generated=true
+*.js.map linguist-generated=true
