@@ -930,33 +930,35 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                            horizontal: 12, vertical: 3),
                         child: Row(
                           children: [
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   const Text('تبغى مساعدة ؟',
                                       style: TextStyle(
                                           color: kNavy,
-                                          fontSize: 11.5,
+                                          fontSize: 10.5,
+                                          height: 1.2,
                                           fontWeight: FontWeight.w700)),
                                   Text('استشر مزارعنا الذكي',
                                       style: TextStyle(
                                           color: kNavy.withValues(alpha: 0.7),
-                                          fontSize: 9.5,
+                                          fontSize: 9,
+                                          height: 1.2,
                                           fontWeight: FontWeight.w500)),
-                                  const SizedBox(height: 2),
                                   const Icon(Icons.arrow_back,
-                                      color: kNavy, size: 13),
+                                      color: kNavy, size: 11),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 10),
                             const RawAssetImage(
                                 'assets/images/athmar_farmer.png',
-                                width: 28, height: 46),
+                                width: 20, height: 33),
                           ],
                         ),
                       ),
@@ -1082,7 +1084,8 @@ class BackChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,
-        child: const Icon(Icons.arrow_back, color: kNavy, size: 20),
+        child: const Icon(Icons.arrow_back,
+            color: kNavy, size: 20, textDirection: TextDirection.ltr),
       ),
     );
   }
@@ -1526,11 +1529,11 @@ class _PlantScreenState extends State<PlantScreen> {
                                       fontWeight: FontWeight.w600)),
                         ),
                         const PositionedDirectional(
-                          top: -10,
-                          start: 6,
+                          top: -9,
+                          start: 16,
                           child: RawAssetImage(
                               'assets/images/plant_stamp.png',
-                              width: 36, height: 17),
+                              width: 40, height: 19),
                         ),
                       ],
                     ),
@@ -2166,8 +2169,12 @@ class _TrackerScreenState extends State<TrackerScreen>
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
+              child: LayoutBuilder(
+                builder: (context, cons) => SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: cons.maxHeight),
+                child: IntrinsicHeight(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -2196,10 +2203,10 @@ class _TrackerScreenState extends State<TrackerScreen>
                         _StreakBadge(days: 1),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    const Spacer(flex: 2),
                     // Plant with sway + celebration sparkles
                     SizedBox(
-                      height: 130,
+                      height: 170,
                       child: Stack(
                         alignment: Alignment.bottomCenter,
                         children: [
@@ -2267,7 +2274,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                             fontSize: 12,
                             fontWeight: FontWeight.w600),
                       ),
-                    const SizedBox(height: 24),
+                    const Spacer(flex: 3),
                     // Add amount card
                     Container(
                       decoration: BoxDecoration(
@@ -2407,6 +2414,9 @@ class _TrackerScreenState extends State<TrackerScreen>
                     const SizedBox(height: 14),
                   ],
                 ),
+                ),
+                ),
+              ),
               ),
             ),
             const _BottomNav(),
