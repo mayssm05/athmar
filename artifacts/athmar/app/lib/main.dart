@@ -2206,7 +2206,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                     const Spacer(flex: 2),
                     // Plant with sway + celebration sparkles
                     SizedBox(
-                      height: 190,
+                      height: 220,
                       child: Stack(
                         alignment: Alignment.bottomCenter,
                         children: [
@@ -2230,8 +2230,8 @@ class _TrackerScreenState extends State<TrackerScreen>
                               child: RawAssetImage(
                                 'assets/images/${stage.$1}.png',
                                 key: ValueKey(stage.$1),
-                                width: stage.$3 * 1.2,
-                                height: stage.$4 * 1.2,
+                                width: stage.$3 * 1.56,
+                                height: stage.$4 * 1.56,
                               ),
                             ),
                           ),
