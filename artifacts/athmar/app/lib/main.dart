@@ -50,6 +50,8 @@ class AthmarApp extends StatelessWidget {
         '/athmar/plant': (_) =>
             const PlantScreen(goal: 'زواج', amount: 10000, months: 2),
         '/athmar/advisor': (_) => const AdvisorChatScreen(),
+        '/athmar/tracker': (_) =>
+            const TrackerScreen(goal: 'طوارئ', amount: 10000, months: 2),
         '/athmar/next': (_) => const AthmarPlaceholderPage(),
       },
     );
@@ -1558,7 +1560,13 @@ class _PlantScreenState extends State<PlantScreen> {
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (_) => TrackerScreen(
+                                  goal: widget.goal,
+                                  amount: widget.amount,
+                                  months: widget.months)));
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: kBlushHelp,
                           foregroundColor: kNavy,
@@ -1969,6 +1977,582 @@ class AthmarPlaceholderPage extends StatelessWidget {
     return const Scaffold(
       backgroundColor: kCream,
       body: SafeArea(child: SizedBox.expand()),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// صفحة متابعة النبتة — savings tracker with growing plant
+// ---------------------------------------------------------------------------
+class TrackerScreen extends StatefulWidget {
+  const TrackerScreen(
+      {super.key,
+      required this.goal,
+      required this.amount,
+      required this.months});
+
+  final String goal;
+  final int amount;
+  final int months;
+
+  @override
+  State<TrackerScreen> createState() => _TrackerScreenState();
+}
+
+class _TrackerScreenState extends State<TrackerScreen>
+    with TickerProviderStateMixin {
+  int _saved = 0;
+  final TextEditingController _amountCtrl = TextEditingController();
+  bool _celebrate = false;
+  int _celebrateKey = 0;
+  bool _inputError = false;
+  late final AnimationController _sway;
+
+  static const _stages = [
+    // asset, name, width, height
+    ('stage1', 'بذرة', 78.0, 52.0),
+    ('stage2', 'برعم', 52.0, 82.0),
+    ('stage3', 'نبتة صغيرة', 86.0, 84.0),
+    ('stage4', 'بداية الإزهار', 80.0, 82.0),
+    ('stage5', 'شجيرة مزهرة', 108.0, 82.0),
+    ('stage6', 'إزهار كامل', 122.0, 94.0),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _sway = AnimationController(
+        vsync: this, duration: const Duration(seconds: 3))
+      ..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _sway.dispose();
+    _amountCtrl.dispose();
+    super.dispose();
+  }
+
+  double get _pct =>
+      widget.amount == 0 ? 0 : (_saved / widget.amount).clamp(0.0, 1.0);
+
+  int get _stageIndex {
+    final p = _pct * 100;
+    if (p >= 100) return 5;
+    if (p >= 75) return 4;
+    if (p >= 50) return 3;
+    if (p >= 25) return 2;
+    if (p >= 5) return 1;
+    return 0;
+  }
+
+  String _fmtInt(int v) {
+    final s = v.toString();
+    final b = StringBuffer();
+    for (var i = 0; i < s.length; i++) {
+      b.write(s[i]);
+      final left = s.length - i - 1;
+      if (left > 0 && left % 3 == 0) b.write(',');
+    }
+    return b.toString();
+  }
+
+  /// Normalizes Arabic-Indic digits and strips grouping separators.
+  int? _parseAmount(String raw) {
+    const east = '٠١٢٣٤٥٦٧٨٩';
+    const persian = '۰۱۲۳۴۵۶۷۸۹';
+    final b = StringBuffer();
+    for (final ch in raw.trim().runes) {
+      final c = String.fromCharCode(ch);
+      final e = east.indexOf(c);
+      final p = persian.indexOf(c);
+      if (e >= 0) {
+        b.write(e);
+      } else if (p >= 0) {
+        b.write(p);
+      } else if (RegExp(r'\d').hasMatch(c)) {
+        b.write(c);
+      } else if (c == ',' || c == '٬' || c == ' ') {
+        // grouping separator — skip
+      } else {
+        return null;
+      }
+    }
+    if (b.isEmpty) return null;
+    return int.tryParse(b.toString());
+  }
+
+  void _addAmount() {
+    final v = _parseAmount(_amountCtrl.text);
+    if (v == null || v <= 0) {
+      setState(() => _inputError = true);
+      return;
+    }
+    final before = _stageIndex;
+    setState(() {
+      _inputError = false;
+      _saved = (_saved + v).clamp(0, widget.amount);
+      _amountCtrl.clear();
+    });
+    if (_stageIndex != before) {
+      setState(() {
+        _celebrate = true;
+        _celebrateKey++;
+      });
+      Future.delayed(const Duration(milliseconds: 1600), () {
+        if (mounted) setState(() => _celebrate = false);
+      });
+    }
+    FocusScope.of(context).unfocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stage = _stages[_stageIndex];
+    final remaining = widget.amount - _saved;
+    return Scaffold(
+      backgroundColor: kCream,
+      body: SafeArea(
+        child: Column(
+          children: [
+            const StatusBar(time: '2:12'),
+            const SizedBox(height: 2),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: HadeelBadge(),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('مرحبا بك في أثمر',
+                                  style: TextStyle(
+                                      color: kNavy,
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.w800)),
+                              const SizedBox(height: 4),
+                              Text('هدف الإدخار : ${widget.goal}',
+                                  style: const TextStyle(
+                                      color: kNavy,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w800)),
+                            ],
+                          ),
+                        ),
+                        _StreakBadge(days: 1),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    // Plant with sway + celebration sparkles
+                    SizedBox(
+                      height: 130,
+                      child: Stack(
+                        alignment: Alignment.bottomCenter,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _sway,
+                            builder: (context, child) => Transform.rotate(
+                              angle: (_sway.value - 0.5) * 0.05,
+                              alignment: Alignment.bottomCenter,
+                              child: child,
+                            ),
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 600),
+                              switchInCurve: Curves.easeOutBack,
+                              transitionBuilder: (child, anim) =>
+                                  ScaleTransition(
+                                scale: anim,
+                                alignment: Alignment.bottomCenter,
+                                child: FadeTransition(
+                                    opacity: anim, child: child),
+                              ),
+                              child: RawAssetImage(
+                                'assets/images/${stage.$1}.png',
+                                key: ValueKey(stage.$1),
+                                width: stage.$3,
+                                height: stage.$4,
+                              ),
+                            ),
+                          ),
+                          if (_celebrate)
+                            Positioned.fill(
+                                child: _SparkleBurst(
+                                    key: ValueKey(_celebrateKey))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 400),
+                      child: Text(stage.$2,
+                          key: ValueKey(stage.$2),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                              color: kNavy.withValues(alpha: 0.75),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700)),
+                    ),
+                    const SizedBox(height: 12),
+                    _ProgressBar(fraction: _pct),
+                    const SizedBox(height: 6),
+                    if (_pct >= 1)
+                      const Text(
+                        'مبروك! نبتتك أزهرت بالكامل، وصلت هدفك',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: kSalmon,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700),
+                      )
+                    else
+                      Text(
+                        'باقي ${_fmtInt(remaining)} ريال لتزهر نبتتك',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: kNavy.withValues(alpha: 0.65),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    const SizedBox(height: 14),
+                    // Add amount card
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(color: const Color(0xFFEFE3D6)),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      child: Column(
+                        children: [
+                          const Text('إضافة مبلغ للادخار',
+                              style: TextStyle(
+                                  color: kNavy,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700)),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: kCream,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                        color: const Color(0xFFE8DCCE)),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: TextField(
+                                    controller: _amountCtrl,
+                                    keyboardType: TextInputType.number,
+                                    onSubmitted: (_) => _addAmount(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                        color: kNavy,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700),
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      isCollapsed: true,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                      hintText: 'ادخل المبلغ',
+                                      hintStyle: TextStyle(
+                                          color:
+                                              kNavy.withValues(alpha: 0.4),
+                                          fontSize: 12.5),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                height: 40,
+                                child: ElevatedButton(
+                                  onPressed: _addAmount,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: kSalmon,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                  child: const Text('أضف',
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          fontFamily:
+                                              'IBM Plex Sans Arabic')),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_inputError) ...[
+                            const SizedBox(height: 6),
+                            const Text('اكتب مبلغ صحيح بالأرقام',
+                                style: TextStyle(
+                                    color: Color(0xFFC0655A),
+                                    fontSize: 10.5,
+                                    fontWeight: FontWeight.w600)),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Farmer help card -> opens the advisor chat
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const AdvisorChatScreen())),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: kBlushHelp,
+                          borderRadius: BorderRadius.circular(26),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 18, vertical: 12),
+                        child: Row(
+                          children: [
+                            const RawAssetImage(
+                                'assets/images/athmar_farmer.png',
+                                width: 40, height: 66),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.center,
+                                children: const [
+                                  Text('تبغى مساعدة ؟',
+                                      style: TextStyle(
+                                          color: kNavy,
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w800)),
+                                  SizedBox(height: 3),
+                                  Text('استشر مزارعنا الذكي',
+                                      style: TextStyle(
+                                          color: kNavy,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600)),
+                                  SizedBox(height: 3),
+                                  Icon(Icons.arrow_back,
+                                      size: 15, color: kNavy),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ),
+              ),
+            ),
+            const _BottomNav(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Streak badge (top corner): days of commitment, pulses on appear.
+class _StreakBadge extends StatefulWidget {
+  const _StreakBadge({required this.days});
+  final int days;
+
+  @override
+  State<_StreakBadge> createState() => _StreakBadgeState();
+}
+
+class _StreakBadgeState extends State<_StreakBadge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 700))
+    ..forward();
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: CurvedAnimation(parent: _c, curve: Curves.elasticOut),
+      child: Container(
+        decoration: BoxDecoration(
+          color: kBlushCard,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.timer_outlined, size: 16, color: kNavy),
+            const SizedBox(height: 3),
+            Text('عدد الأيام: ${widget.days} يوم',
+                style: const TextStyle(
+                    color: kNavy,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w800)),
+            const SizedBox(height: 2),
+            Text('التزام متواصل',
+                style: TextStyle(
+                    color: kNavy.withValues(alpha: 0.55),
+                    fontSize: 7.5,
+                    fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Animated progress bar: knob color shifts purple -> gold with progress.
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({required this.fraction});
+  final double fraction;
+
+  @override
+  Widget build(BuildContext context) {
+    const knobPurple = Color(0xFF9B7EDE);
+    const knobGold = Color(0xFFF2B33D);
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: fraction),
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutCubic,
+      builder: (context, f, _) {
+        final knobColor = Color.lerp(knobPurple, knobGold, f)!;
+        return Directionality(
+          textDirection: TextDirection.ltr,
+          child: Column(
+            children: [
+              LayoutBuilder(builder: (context, c) {
+                final w = c.maxWidth;
+                return Stack(
+                  children: [
+                    Container(
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE7E4DF),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    Container(
+                      height: 12,
+                      width: (16 + (w - 16) * f).clamp(16.0, w),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: [
+                          knobColor,
+                          const Color(0xFF9CC8EC),
+                          const Color(0xFFDDEBF7),
+                        ]),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    Container(
+                      height: 12,
+                      width: 16,
+                      decoration: BoxDecoration(
+                        color: knobColor,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ],
+                );
+              }),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text('${(f * 100).round()}%',
+                    style: const TextStyle(
+                        color: kNavy,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Small sparkles that fade out when the plant reaches a new stage.
+class _SparkleBurst extends StatefulWidget {
+  const _SparkleBurst({super.key});
+
+  @override
+  State<_SparkleBurst> createState() => _SparkleBurstState();
+}
+
+class _SparkleBurstState extends State<_SparkleBurst>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 1500))
+    ..forward();
+
+  static const _spots = [
+    (0.15, 0.25, 14.0),
+    (0.80, 0.15, 18.0),
+    (0.30, 0.05, 12.0),
+    (0.65, 0.45, 13.0),
+    (0.90, 0.55, 11.0),
+    (0.08, 0.60, 12.0),
+  ];
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final t = _c.value;
+        final opacity = t < 0.2 ? t / 0.2 : (1 - t).clamp(0.0, 1.0);
+        return LayoutBuilder(builder: (context, c) {
+          return Stack(
+            children: [
+              for (final s in _spots)
+                Positioned(
+                  left: c.maxWidth * s.$1,
+                  top: c.maxHeight * s.$2 - t * 12,
+                  child: Opacity(
+                    opacity: opacity,
+                    child: Icon(Icons.auto_awesome,
+                        size: s.$3, color: kSalmon),
+                  ),
+                ),
+            ],
+          );
+        });
+      },
     );
   }
 }
