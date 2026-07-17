@@ -449,6 +449,8 @@ class ServicesScreen extends StatelessWidget {
                           color: kNavy,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
+                  const Spacer(),
+                  const BackChip(),
                 ],
               ),
             ),
@@ -656,6 +658,8 @@ class AthmarWelcomeScreen extends StatelessWidget {
                           color: kNavy,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
+                  const Spacer(),
+                  const BackChip(),
                 ],
               ),
             ),
@@ -839,6 +843,8 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                           color: kNavy,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
+                  const Spacer(),
+                  const BackChip(),
                 ],
               ),
             ),
@@ -924,7 +930,7 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
+                            horizontal: 12, vertical: 4),
                         child: Row(
                           children: [
                             Expanded(
@@ -934,23 +940,23 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                                   const Text('تبغى مساعدة ؟',
                                       style: TextStyle(
                                           color: kNavy,
-                                          fontSize: 13,
+                                          fontSize: 11.5,
                                           fontWeight: FontWeight.w700)),
                                   Text('استشر مزارعنا الذكي',
                                       style: TextStyle(
                                           color: kNavy.withValues(alpha: 0.7),
-                                          fontSize: 10.5,
+                                          fontSize: 9.5,
                                           fontWeight: FontWeight.w500)),
                                   const SizedBox(height: 2),
                                   const Icon(Icons.arrow_back,
-                                      color: kNavy, size: 15),
+                                      color: kNavy, size: 13),
                                 ],
                               ),
                             ),
                             const SizedBox(width: 12),
                             const RawAssetImage(
                                 'assets/images/athmar_farmer.png',
-                                width: 34, height: 56),
+                                width: 28, height: 46),
                           ],
                         ),
                       ),
@@ -1060,6 +1066,28 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
 // ---------------------------------------------------------------------------
 const kTileGray = Color(0xFFD9D9D9);
 
+/// Back button chip — same corner and style on every page.
+class BackChip extends StatelessWidget {
+  const BackChip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).maybePop(),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: kPill,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        alignment: Alignment.center,
+        child: const Icon(Icons.arrow_back, color: kNavy, size: 20),
+      ),
+    );
+  }
+}
+
 class HadeelBadge extends StatelessWidget {
   const HadeelBadge({super.key});
 
@@ -1111,10 +1139,12 @@ class _GoalScreenState extends State<GoalScreen> {
 
   int? _selected; // 0..4 preset, 5 = custom
   final TextEditingController _custom = TextEditingController();
+  final FocusNode _customFocus = FocusNode();
 
   @override
   void dispose() {
     _custom.dispose();
+    _customFocus.dispose();
     super.dispose();
   }
 
@@ -1152,9 +1182,9 @@ class _GoalScreenState extends State<GoalScreen> {
             const SizedBox(height: 2),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: HadeelBadge(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [HadeelBadge(), BackChip()],
               ),
             ),
             const SizedBox(height: 14),
@@ -1172,6 +1202,7 @@ class _GoalScreenState extends State<GoalScreen> {
                 child: Column(
                   children: [
                     // Tile order per mockup; last row: custom goal right, بيت left.
+                    const SizedBox(height: 4),
                     for (final pair in const [
                       [0, 1],
                       [2, 3],
@@ -1184,7 +1215,7 @@ class _GoalScreenState extends State<GoalScreen> {
                           Expanded(child: _tile(pair[1])),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
                     ],
                   ],
                 ),
@@ -1228,9 +1259,12 @@ class _GoalScreenState extends State<GoalScreen> {
         : Border.all(color: Colors.transparent, width: 2);
     if (index == 5) {
       return GestureDetector(
-        onTap: () => setState(() => _selected = 5),
+        onTap: () {
+          setState(() => _selected = 5);
+          _customFocus.requestFocus();
+        },
         child: Container(
-          height: 128,
+          height: 150,
           decoration: BoxDecoration(
             color: kTileGray,
             borderRadius: BorderRadius.circular(28),
@@ -1255,7 +1289,8 @@ class _GoalScreenState extends State<GoalScreen> {
                       fontWeight: FontWeight.w500)),
               const SizedBox(height: 3),
               Container(
-                height: 24,
+                height: 28,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(8),
@@ -1263,11 +1298,15 @@ class _GoalScreenState extends State<GoalScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: TextField(
                   controller: _custom,
+                  focusNode: _customFocus,
                   maxLength: 100,
                   buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
                   onTap: () => setState(() => _selected = 5),
                   onChanged: (_) => setState(() {}),
                   textAlign: TextAlign.center,
+                  textAlignVertical: TextAlignVertical.center,
+                  cursorColor: kNavy,
+                  cursorHeight: 13,
                   style: const TextStyle(
                       color: kNavy,
                       fontSize: 11,
@@ -1276,7 +1315,7 @@ class _GoalScreenState extends State<GoalScreen> {
                   decoration: const InputDecoration(
                     isDense: true,
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.only(bottom: 10),
+                    contentPadding: EdgeInsets.symmetric(vertical: 7),
                   ),
                 ),
               ),
@@ -1289,7 +1328,7 @@ class _GoalScreenState extends State<GoalScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selected = index),
       child: Container(
-        height: 128,
+        height: 150,
         decoration: BoxDecoration(
           color: kTileGray,
           borderRadius: BorderRadius.circular(28),
@@ -1395,9 +1434,9 @@ class _PlantScreenState extends State<PlantScreen> {
             const SizedBox(height: 2),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: HadeelBadge(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [HadeelBadge(), BackChip()],
               ),
             ),
             Expanded(
@@ -1405,7 +1444,7 @@ class _PlantScreenState extends State<PlantScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 14),
                     RichText(
                       textAlign: TextAlign.center,
                       text: const TextSpan(
@@ -1425,7 +1464,7 @@ class _PlantScreenState extends State<PlantScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -1446,7 +1485,7 @@ class _PlantScreenState extends State<PlantScreen> {
                                 fontSize: 18)),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 18),
                     const Text('كلما ادخرت اكثر, نبتتك ستكبر\nوتزهر بوقتك الجميل.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
@@ -1454,10 +1493,10 @@ class _PlantScreenState extends State<PlantScreen> {
                             fontSize: 12.5,
                             height: 1.6,
                             fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 16),
                     const RawAssetImage('assets/images/plant_lavender.png',
                         width: 100, height: 107),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 20),
                     Stack(
                       clipBehavior: Clip.none,
                       children: [
@@ -1495,7 +1534,7 @@ class _PlantScreenState extends State<PlantScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 22),
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
@@ -1537,7 +1576,7 @@ class _PlantScreenState extends State<PlantScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 20),
                     Row(
                       children: [
                         const RawAssetImage('assets/images/athmar_sprout.png',
@@ -1555,7 +1594,7 @@ class _PlantScreenState extends State<PlantScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
                       height: 50,
@@ -1743,6 +1782,8 @@ class _AdvisorChatScreenState extends State<AdvisorChatScreen> {
                           color: kNavy,
                           fontSize: 18,
                           fontWeight: FontWeight.w700)),
+                  const Spacer(),
+                  const BackChip(),
                 ],
               ),
             ),
@@ -2119,9 +2160,9 @@ class _TrackerScreenState extends State<TrackerScreen>
             const SizedBox(height: 2),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: HadeelBadge(),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [HadeelBadge(), BackChip()],
               ),
             ),
             Expanded(
@@ -2155,7 +2196,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                         _StreakBadge(days: 1),
                       ],
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 32),
                     // Plant with sway + celebration sparkles
                     SizedBox(
                       height: 130,
@@ -2194,7 +2235,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 10),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 400),
                       child: Text(stage.$2,
@@ -2205,9 +2246,9 @@ class _TrackerScreenState extends State<TrackerScreen>
                               fontSize: 12,
                               fontWeight: FontWeight.w700)),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 18),
                     _ProgressBar(fraction: _pct),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     if (_pct >= 1)
                       const Text(
                         'مبروك! نبتتك أزهرت بالكامل، وصلت هدفك',
@@ -2226,7 +2267,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                             fontSize: 12,
                             fontWeight: FontWeight.w600),
                       ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 24),
                     // Add amount card
                     Container(
                       decoration: BoxDecoration(
@@ -2317,7 +2358,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     // Farmer help card -> opens the advisor chat
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
