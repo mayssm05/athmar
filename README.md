@@ -4,7 +4,7 @@
 
 **وفّر… وشوف فلوسك تُثمر.**
 
-أثمر تطبيق ادخار عربي يحوّل التوفير من التزام ثقيل إلى رحلة ممتعة — كل ريال توفّره يسقي نبتة تكبر معك، خطوة بخطوة، حتى تُثمر ويتحقق هدفك.
+أثمر ميزة ادخار مبتكرة داخل تطبيق **مصرف الإنماء** تحوّل التوفير من التزام ثقيل إلى رحلة ممتعة — كل ريال توفّره يسقي نبتة تكبر معك، خطوة بخطوة، حتى تُثمر ويتحقق هدفك.
 
 ## 💡 الفكرة
 
@@ -36,7 +36,7 @@
 
 **Save… and watch your money bear fruit.**
 
-Athmar (Arabic for *"to bear fruit"*) is an Arabic-first savings app that turns saving money from a chore into a living journey — every riyal you save waters a plant that grows with you, stage by stage, until it fruits and your goal is reached.
+Athmar (Arabic for *"to bear fruit"*) is a savings feature designed for the **Alinma Bank** app. It turns saving money from a chore into a living journey — every riyal you save waters a plant that grows with you, stage by stage, until it fruits and your goal is reached.
 
 ## 💡 The Idea
 
