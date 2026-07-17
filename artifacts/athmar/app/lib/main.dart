@@ -920,7 +920,7 @@ class _AthmarSavingsSetupScreenState extends State<AthmarSavingsSetupScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 48),
                     GestureDetector(
                       onTap: () =>
                           Navigator.of(context).pushNamed('/athmar/advisor'),
@@ -2206,7 +2206,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                     const Spacer(flex: 2),
                     // Plant with sway + celebration sparkles
                     SizedBox(
-                      height: 170,
+                      height: 190,
                       child: Stack(
                         alignment: Alignment.bottomCenter,
                         children: [
@@ -2230,8 +2230,8 @@ class _TrackerScreenState extends State<TrackerScreen>
                               child: RawAssetImage(
                                 'assets/images/${stage.$1}.png',
                                 key: ValueKey(stage.$1),
-                                width: stage.$3,
-                                height: stage.$4,
+                                width: stage.$3 * 1.2,
+                                height: stage.$4 * 1.2,
                               ),
                             ),
                           ),
@@ -2274,7 +2274,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                             fontSize: 12,
                             fontWeight: FontWeight.w600),
                       ),
-                    const Spacer(flex: 3),
+                    const Spacer(flex: 2),
                     // Add amount card
                     Container(
                       decoration: BoxDecoration(
@@ -2411,7 +2411,7 @@ class _TrackerScreenState extends State<TrackerScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 28),
                   ],
                 ),
                 ),
@@ -2457,22 +2457,22 @@ class _StreakBadgeState extends State<_StreakBadge>
           color: kBlushCard,
           borderRadius: BorderRadius.circular(14),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.timer_outlined, size: 16, color: kNavy),
+            const Text('🔥', style: TextStyle(fontSize: 18)),
             const SizedBox(height: 3),
-            Text('عدد الأيام: ${widget.days} يوم',
+            Text('عداد الالتزام: ${widget.days} يوم',
                 style: const TextStyle(
                     color: kNavy,
-                    fontSize: 8.5,
+                    fontSize: 10,
                     fontWeight: FontWeight.w800)),
             const SizedBox(height: 2),
             Text('التزام متواصل',
                 style: TextStyle(
                     color: kNavy.withValues(alpha: 0.55),
-                    fontSize: 7.5,
+                    fontSize: 8.5,
                     fontWeight: FontWeight.w600)),
           ],
         ),
